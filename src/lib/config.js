@@ -112,8 +112,8 @@ function validateCredentialsEnv () {
       throw new Error(`Missing username for ledger: ${ledger}`)
     } else if ((credential.cert === undefined) !== (credential.key === undefined)) {
       throw new Error(`Missing certificate or key for ledger: ${ledger}`)
-    } else if (credential.account_uri === undefined) {
-      throw new Error(`Missing account_uri for ledger: ${ledger}`)
+    } else if (credential.account === undefined && credential.account_uri === undefined) {
+      throw new Error(`Missing account for ledger: ${ledger}`)
     }
 
     try {
@@ -229,7 +229,7 @@ function getLocalConfig () {
   // Credentials should be specified as a map of the form
   // {
   //    "<ledger_uri>": {
-  //      "account_uri": "...",
+  //      "account": "...",
   //      "username": "...",
   //      "password": "..."
   //    }
