@@ -4,6 +4,7 @@ const fs = require('fs')
 const cc = require('five-bells-condition')
 const Config = require('five-bells-shared').Config
 const Utils = require('../lib/utils')
+const log = require('mag')('config')
 const _ = require('lodash')
 
 const envPrefix = 'CONNECTOR'
@@ -43,6 +44,18 @@ function parseCredentials () {
   const credentialsEnv = parseCredentialsEnv()
 
   return _.mapValues(credentialsEnv, (credentials) => {
+    // DEPRECATED: `account_uri` (should be just `account`)
+    if (credentials.account_uri) {
+      log.warn('DEPRECATED: The key `account_uri` in ledger credentials has been renamed `account`')
+      credentials.account = credentials.account_uri
+      delete credentials.account_uri
+    }
+
+    // Apply default ledger type
+    if (!credentials.type) {
+      credentials.type = 'bells'
+    }
+
     const isClientCertCredential = credentials.key !== undefined
 
     if (isClientCertCredential) {
@@ -112,8 +125,8 @@ function validateCredentialsEnv () {
       throw new Error(`Missing username for ledger: ${ledger}`)
     } else if ((credential.cert === undefined) !== (credential.key === undefined)) {
       throw new Error(`Missing certificate or key for ledger: ${ledger}`)
-    } else if (credential.account_uri === undefined) {
-      throw new Error(`Missing account_uri for ledger: ${ledger}`)
+    } else if (credential.account === undefined && credential.account_uri === undefined) {
+      throw new Error(`Missing account for ledger: ${ledger}`)
     }
 
     try {
@@ -229,7 +242,7 @@ function getLocalConfig () {
   // Credentials should be specified as a map of the form
   // {
   //    "<ledger_uri>": {
-  //      "account_uri": "...",
+  //      "account": "...",
   //      "username": "...",
   //      "password": "..."
   //    }
