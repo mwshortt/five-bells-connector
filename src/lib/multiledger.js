@@ -2,6 +2,7 @@
 
 const _ = require('lodash')
 const healthStatus = require('../common/health.js')
+const newSqliteStore = require('../lib/sqliteStore.js')
 
 function Multiledger (options) {
   this.config = options.config
@@ -22,7 +23,8 @@ Multiledger.prototype.getLedgers = function () {
 Multiledger.prototype.buildLedgers = function () {
   const ledgers = {}
   Object.keys(this.config.get('ledgerCredentials')).forEach((ledgerId) => {
-    const creds = this.config.getIn(['ledgerCredentials', ledgerId])
+    const creds = _.clone(this.config.getIn(['ledgerCredentials', ledgerId]))
+    const store = creds.store && newSqliteStore(creds.store)
 
     if (creds.account_uri) {
       this.log.warn('DEPRECATED: The key `account_uri` in ledger credentials has been renamed `account`')
@@ -35,6 +37,7 @@ Multiledger.prototype.buildLedgers = function () {
     ledgers[ledgerId] = new LedgerPlugin({
       id: ledgerId,
       auth: creds,
+      store: store,
       debugReplyNotifications: this.config.features.debugReplyNotifications,
       debugAutofund: this.config.getIn(['features', 'debugAutoFund'])
         ? {

@@ -84,7 +84,7 @@ TransferTester.prototype.validateMaxHoldTime = function () {
   const expiresAt = this.getExpiry(this.destinationTransfer)
   if (expiresAt) {
     this.validateExpiryHoldTime(expiresAt)
-  } else {
+  } else if (this.destinationTransfer.executionCondition) {
     throw new UnacceptableExpiryError('Destination transfers with ' +
       'execution conditions must have an expires_at field for connector ' +
       'to agree to authorize them')
